@@ -14,10 +14,6 @@ export async function PUT(request: Request) {
 
     const { name, quantity, image } = await request.json();
 
-    if (!name || !quantity || isNaN(parseInt(quantity, 10))) {
-      return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
-    }
-
     const updatedGift = await prisma.gift.update({
       where: { id: Number(id) },
       data: { name, quantity: parseInt(quantity, 10), image },

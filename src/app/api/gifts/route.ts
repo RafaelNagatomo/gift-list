@@ -18,10 +18,6 @@ export async function POST(request: Request) {
   try {
     const { name, quantity, image } = await request.json();
 
-    if (!name || !quantity || isNaN(parseInt(quantity, 10))) {
-      return NextResponse.json({ error: 'Dados inválidos fornecidos' }, { status: 400 });
-    }
-
     const gift = await prisma.gift.create({
       data: {
         name,
