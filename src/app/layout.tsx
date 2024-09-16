@@ -1,25 +1,34 @@
-import "./globals.css";
-import { Poppins } from "next/font/google";
-import Header from "../components/Header";
+import React from 'react';
+import { Container, AppBar, Typography, Box } from '@mui/material';
+import { Poppins } from 'next/font/google';
+import Header from '../components/Header';
 
-const poppins = Poppins({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800", "900"] });
-
-export const metadata = {
-  title: "FSW Trips",
-  description: "Sistema de Reserva de Viagens TOP!",
-};
+const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800', '900'] });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <body className={poppins.className}>
-        <div className="flex flex-col h-screen">
-          <div className="h-[85px]">
+        <Container
+          maxWidth="lg"
+          sx={{
+            backgroundColor: '#e2e4eb',
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            p: 0,
+            }}
+        >
+          <AppBar position="static" sx={{ mb: 2 }}>
             <Header />
-          </div>
-
-          <div className="flex-1">{children}</div>
-        </div>
+          </AppBar>
+          <main style={{ flex: 1 }}>{children}</main>
+        </Container>
+        <Box sx={{ display: 'flex', justifyContent: 'center', m: 2 }}>
+          <Typography variant="body2" component="span">
+            Obrigado! E nos vemos na festa <span style={{ fontSize: 24 }}>👋</span>
+          </Typography>
+        </Box>
       </body>
     </html>
   );
