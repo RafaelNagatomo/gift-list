@@ -8,11 +8,15 @@ export async function PUT(request: Request) {
     const { pathname } = new URL(request.url);
     const id = pathname.split('/').pop();
 
-    if (!id) {
-      return NextResponse.json({ error: 'ID não fornecido' }, { status: 400 });
+    if (!id || isNaN(Number(id))) {
+      return NextResponse.json({ error: 'ID inválido ou não fornecido' }, { status: 400 });
     }
 
     const { name, quantity, image } = await request.json();
+
+    if (!name || !quantity || isNaN(parseInt(quantity, 10))) {
+      return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
+    }
 
     const updatedGift = await prisma.gift.update({
       where: { id: Number(id) },
@@ -22,6 +26,8 @@ export async function PUT(request: Request) {
     return NextResponse.json(updatedGift);
   } catch (error) {
     return NextResponse.json({ error: 'Erro ao atualizar gift' }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
@@ -30,8 +36,8 @@ export async function DELETE(request: Request) {
     const { pathname } = new URL(request.url);
     const id = pathname.split('/').pop();
 
-    if (!id) {
-      return NextResponse.json({ error: 'ID não fornecido' }, { status: 400 });
+    if (!id || isNaN(Number(id))) {
+      return NextResponse.json({ error: 'ID inválido ou não fornecido' }, { status: 400 });
     }
 
     await prisma.gift.delete({
@@ -41,5 +47,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json(null, { status: 204 });
   } catch (error) {
     return NextResponse.json({ error: 'Erro ao deletar gift' }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }
