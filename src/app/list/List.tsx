@@ -18,6 +18,7 @@ import {
   DialogActions
 } from "@mui/material";
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import CircularProgress from '@mui/material/CircularProgress';
 
 interface Gift {
   id: number;
@@ -30,11 +31,14 @@ interface Gift {
 const List = () => {
   const [gifts, setGifts] = useState<Gift[]>([]);
   const [showThankYouModal, setShowThankYouModal] = useState(false);
+  const [loading, setLoading] = useState<number | null>(null)
 
   const fetchGifts = async () => {
     try {
       const response = await axios.get('/api/gifts');
-      setGifts(response.data);
+      const sortedGifts = response?.data?.sort((a: Gift, b: Gift) => (a.name ?? '').localeCompare(b.name ?? ''));
+    
+      setGifts(sortedGifts);
     } catch (error) {
       console.error('Falha ao buscar os presentes:', error);
     }
@@ -45,16 +49,18 @@ const List = () => {
   }, []);
 
   const handleChooseGift = async (gift: Gift) => {
+    setLoading(gift?.id)
     try {
-      const updatedQuantity = gift.quantity - 1;
+      const updatedQuantity = gift?.quantity - 1;
 
-      await axios.put(`/api/gifts/${gift.id}`, { quantity: updatedQuantity });
+      await axios.put(`/api/gifts/${gift?.id}`, { quantity: updatedQuantity });
 
       setGifts(prevGifts =>
-        prevGifts.map(g => (g.id === gift.id ? { ...g, quantity: updatedQuantity } : g))
+        prevGifts.map(g => (g.id === gift?.id ? { ...g, quantity: updatedQuantity } : g))
       );
 
       setShowThankYouModal(true);
+      setLoading(null)
       setTimeout(() => {
         setShowThankYouModal(false);
       }, 5000);
@@ -81,7 +87,7 @@ const List = () => {
         
         <Typography variant="h6" sx={{ m: 3 }}>
           <AlertTitle>
-            Por favor, sinta-se à vontade para escolher a marca e a quantidade/gramas que preferir. E também, a loja de sua preferência.
+            Por favor, sinta-se à vontade para escolher a marca e a quantidade de fraldas por pacote que preferir. E também, a loja de sua preferência.
           </AlertTitle>
         </Typography>
       </Card>
@@ -91,10 +97,10 @@ const List = () => {
       </Typography>
         
       <Grid container>
-      {gifts.map((gift) => (
-        <Grid container item xs={12} sm={6} md={6} key={gift.id}>
+      {gifts?.map((gift) => (
+        <Grid container item xs={12} sm={6} md={6} key={gift?.id}>
           <Card 
-            key={gift.id} 
+            key={gift?.id} 
             variant="outlined" 
             sx={{ 
               display: 'flex', 
@@ -109,9 +115,13 @@ const List = () => {
           >
             <CardMedia
               component="img"
-              image={gift.image || '/placeholder.jpg'}
-              alt={gift.name}
-              sx={{ flex: '0 0', width: '130px' }}
+              image={gift?.image || '/placeholder.jpg'}
+              alt={gift?.name}
+              sx={{
+                flex: '0 0',
+                width: '130px',
+                filter: gift?.quantity === 0 ? 'grayscale(100%)' : ''
+              }}
             />
       
             <Box
@@ -125,14 +135,14 @@ const List = () => {
               >
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-                  {gift.name}
+                  {gift?.name}
                 </Typography>
       
                 <Typography variant="body2" sx={{ mb: 1 }}>
                   Quantidade restante:
                 </Typography>
                 <Chip
-                  label={`${gift.quantity} un`}
+                  label={`${gift?.quantity} un`}
                   sx={{
                     width: '100%',
                     mb: 1,
@@ -148,8 +158,10 @@ const List = () => {
                 variant="contained"
                 color="primary"
                 onClick={() => handleChooseGift(gift)}
+                disabled={loading === gift?.id || gift?.quantity === 0}
+                startIcon={loading === gift?.id ? <CircularProgress size={24} color="inherit" /> : null}
               >
-                Escolher
+                {loading === gift?.id ? 'Carregando...' : 'Escolher'}
               </Button>
             </Box>
           </Card>
@@ -160,14 +172,18 @@ const List = () => {
       <Dialog
         open={showThankYouModal}
         onClose={() => setShowThankYouModal(false)}
-        sx={{ '& .MuiDialog-paper': { width: '300px', maxWidth: '300px' } }}
+        sx={{ '& .MuiDialog-paper': { width: '350px', textAlign: 'center', margin: 2 } }}
       >
-        <DialogTitle>Obrigado!</DialogTitle>
+        <DialogTitle>Escolhido!</DialogTitle>
         <DialogContent>
-          <Typography variant="body1">Obrigado por nos avisar!</Typography>
+          <Typography variant="body1">Obrigado por nos avisar! <span style={{ fontSize: 25 }}>🎉✨</span></Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowThankYouModal(false)} color="primary">
+          <Button
+            color="primary"
+            variant="contained"
+            onClick={() => setShowThankYouModal(false)}
+          >
             Fechar
           </Button>
         </DialogActions>
